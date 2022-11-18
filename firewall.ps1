@@ -3,10 +3,10 @@ $ErrorActionPreference = "stop"
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'
 $rg = 'tragedy'
 $location ="west US"
+$firewallname = 'vlstage-firewall'
 $fwsubnetname = 'AzureFirewallSubnet'
 $fwprefix = '10.11.1.0/26'
 $pip = '20.237.215.134'
-
 
 #Create firewall subnet in existing vnet 
 
@@ -15,7 +15,8 @@ Add-AzVirtualNetworkSubnetConfig -Name $fwsubnetname -AddressPrefix $fwprefix -V
 $vnet | Set-AzVirtualNetwork
 
 #Creating firewall
-$Azfw = New-AzFirewall -Name vlstage-firewall -ResourceGroupName $RG -Location $Location -VirtualNetwork $vnetname -PublicIpaddress $pip
+$fwpip = Get-AzPublicIpAddress -name 'newvmpipsarshar' -ResourceGroupName $rg
+$Azfw = New-AzFirewall -Name $firewallname -ResourceGroupName $RG -Location $Location -VirtualNetwork $vnet -PublicIpaddress $fwpip
 
 #Adding outbound application rule in firewall to allow all traffic
 
