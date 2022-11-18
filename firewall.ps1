@@ -1,3 +1,5 @@
+$ErrorActionPreference = "stop"
+
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'
 $rg = 'tragedy'
 $location ="west US"
