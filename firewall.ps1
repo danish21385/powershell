@@ -1,4 +1,5 @@
 $ErrorActionPreference = "stop"
+$WhatIfPreference = $true
 
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'
 $rg = 'tragedy'
@@ -35,10 +36,14 @@ Set-AzFirewall -AzureFirewall $Azfw
  Set-AzFirewall -AzureFirewall $Azfw
 
 #Adding inbount NAT rule
+ #get the loadbalancer frontend ip. We will use this in the firewall NAT rule
+
+$slb = Get-AzLoadBalancer -Name 'loadbalancersarshar' -ResourceGroupName $rg
+$lbfeip = Get-AzLoadBalancerFrontendIpConfig -Name  'lbsarshar' -LoadBalancer $slb
 
 $Azfw = Get-AzFirewall -ResourceGroupName $rg
-$natrule1 = New-AzFirewallNatRule -Name "http" -Protocol "TCP" -SourceAddress "*" -DestinationAddress $pip -DestinationPort "80" -TranslatedAddress "10.0.0.2" -TranslatedPort "80"
-$natrule2 = New-AzFirewallNatRule -Name "https" -Protocol "TCP" -SourceAddress "*" -DestinationAddress $pip -DestinationPort "443" -TranslatedAddress "10.0.0.2" -TranslatedPort "443"
+$natrule1 = New-AzFirewallNatRule -Name "http" -Protocol "TCP" -SourceAddress "*" -DestinationAddress $lbfeip -DestinationPort "80" -TranslatedAddress "10.0.0.2" -TranslatedPort "80"
+$natrule2 = New-AzFirewallNatRule -Name "https" -Protocol "TCP" -SourceAddress "*" -DestinationAddress $lbfeip -DestinationPort "443" -TranslatedAddress "10.0.0.2" -TranslatedPort "443"
 $natruleCollection = New-AzFirewallNatRuleCollection -Name "NatRuleCollection" -Priority 1000 -Rule $natrule1, $natrule2
 $Azfw.NatRuleCollections = $natrulecollection
 Set-AzFirewall -AzureFirewall $Azfw

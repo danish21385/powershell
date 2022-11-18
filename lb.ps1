@@ -1,4 +1,5 @@
 $ErrorActionPreference = "stop"
+$WhatIfPreference = $true
 
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'
 $rg = 'tragedy'
