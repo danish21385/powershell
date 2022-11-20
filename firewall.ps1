@@ -3,56 +3,20 @@ $WhatIfPreference = $true
 
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'
 $rg = 'tragedy'
-$location ="west US"
-$firewallname = 'vlstage-firewall'
-$fwsubnetname = 'AzureFirewallSubnet'
-$fwprefix = '10.11.1.0/26'
-$pip = '20.237.215.134'
+$location ="westUS"
 
-#Create firewall subnet in existing vnet 
-
-$vnet = Get-AzVirtualNetwork -Name $vnetname -ResourceGroupName $rg
-Add-AzVirtualNetworkSubnetConfig -Name $fwsubnetname -AddressPrefix $fwprefix -VirtualNetwork $vnet
-$vnet | Set-AzVirtualNetwork
-
-#Creating firewall
-$fwpip = Get-AzPublicIpAddress -name 'newvmpipsarshar' -ResourceGroupName $rg
-$Azfw = New-AzFirewall -Name $firewallname -ResourceGroupName $RG -Location $Location -VirtualNetwork $vnet -PublicIpaddress $fwpip
-
-#Adding outbound application rule in firewall to allow all traffic
-
-$Azfw = Get-AzFirewall -ResourceGroupName $rg
 $apprule = New-AzFirewallApplicationRule -Name 'Allow-All' -Protocol "http:80","https:443" -TargetFqdn "*" -SourceAddress '*' 
 $appruleCollection = New-AzFirewallApplicationRuleCollection -Name 'AppRuleCollection' -Priority 100 -Rule $apprule -ActionType "Allow"
-$Azfw.ApplicationRuleCollections = $appruleCollection
-Set-AzFirewall -AzureFirewall $Azfw
 
-#Adding outbound network rule in firewall to allow all traffic
+$netrule = New-AzFirewallNetworkRule -Name 'Allow-All' -Protocol TCP -SourceAddress '*' -DestinationAddress '*' -DestinationPort "*"
+$netrulecollection = New-AzFirewallNetworkRuleCollection -Name 'NetRuleCollection' -Priority 100 -Rule $netrule -ActionType "Allow"
 
- $Azfw = Get-AzFirewall -ResourceGroupName $rg
- $netrule = New-AzFirewallNetworkRule -Name 'Allow-All' -Protocol TCP -SourceAddress '*' -DestinationAddress '*' -DestinationPort "*"
- $netrulecollection = New-AzFirewallNetworkRuleCollection -Name 'NetRuleCollection' -Priority 100 -Rule $netrule -ActionType "Allow"
- $Azfw.NetworkRuleCollections = $netrulecollection
- Set-AzFirewall -AzureFirewall $Azfw
-
-#Adding inbount NAT rule
- #get the loadbalancer frontend ip. We will use this in the firewall NAT rule
-
-$slb = Get-AzLoadBalancer -Name 'loadbalancersarshar' -ResourceGroupName $rg
-$lbfeip = Get-AzLoadBalancerFrontendIpConfig -Name  'lbsarshar' -LoadBalancer $slb
-
-$Azfw = Get-AzFirewall -ResourceGroupName $rg
-$natrule1 = New-AzFirewallNatRule -Name "http" -Protocol "TCP" -SourceAddress "*" -DestinationAddress $lbfeip -DestinationPort "80" -TranslatedAddress "10.0.0.2" -TranslatedPort "80"
-$natrule2 = New-AzFirewallNatRule -Name "https" -Protocol "TCP" -SourceAddress "*" -DestinationAddress $lbfeip -DestinationPort "443" -TranslatedAddress "10.0.0.2" -TranslatedPort "443"
+$natrule1 = New-AzFirewallNatRule -Name "http" -Protocol "TCP" -SourceAddress "*" -DestinationAddress 20.237.215.120 -DestinationPort "80" -TranslatedAddress "10.0.0.2" -TranslatedPort "80"
+$natrule2 = New-AzFirewallNatRule -Name "https" -Protocol "TCP" -SourceAddress "*" -DestinationAddress 20.237.215.120 -DestinationPort "443" -TranslatedAddress "10.0.0.2" -TranslatedPort "443"
 $natruleCollection = New-AzFirewallNatRuleCollection -Name "NatRuleCollection" -Priority 1000 -Rule $natrule1, $natrule2
-$Azfw.NatRuleCollections = $natrulecollection
-Set-AzFirewall -AzureFirewall $Azfw
 
-#Creating user defined route and attach it to default subnet
+#Creating firewall 
 
-$Route = New-AzRouteConfig -Name "defaultroute" -AddressPrefix 0.0.0.0/0 -NextHopType VirtualAppliance -NextHopIpAddress 10.10.10.1
-New-AzRouteTable -Name "RouteTable01" -ResourceGroupName $rg -Location $location -Route $Route
-$rt = Get-AzRouteTable -ResourceGroupName $rg -Name "RouteTable01"
-$vnet = Get-AzVirtualNetwork -Name $vnetname -ResourceGroupName $rg
-Set-AzVirtualNetworkSubnetConfig  -VirtualNetwork $vnet -Name 'default' -AddressPrefix 10.11.0.0/24 -RouteTable $rt 
-Set-AzVirtualNetwork -VirtualNetwork $vnet
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $rg -Name "TestingScriptDeleteVM-vnet-asr"
+$pip = Get-AzPublicIpAddress -ResourceGroupName $rg -Name "newvmpipsarshar"
+New-AzFirewall -Name "vlstage-fw" -ResourceGroupName $rg -Location westUS -VirtualNetwork $vnet -PublicIpAddress $pip -ApplicationRuleCollection $appruleCollection -NetworkRuleCollection $netrulecollection -NatRuleCollection $natruleCollection

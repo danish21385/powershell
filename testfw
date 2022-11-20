@@ -1,0 +1,4 @@
+$rgName = "tragedy"
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $rgName -Name "TestingScriptDeleteVM-vnet-asr"
+$pip = Get-AzPublicIpAddress -ResourceGroupName $rgName -Name "newvmpipsarshar"
+New-AzFirewall -Name "azFw" -ResourceGroupName $rgName -Location westUS -VirtualNetwork $vnet -PublicIpAddress $pip

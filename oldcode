@@ -1,0 +1,8 @@
+#Creating firewall 
+
+# $vnet = Get-AzVirtualNetwork -Name $vnetname -ResourceGroupName $rg
+# Add-AzVirtualNetworkSubnetConfig -Name "AzureFirewallSubnet" -AddressPrefix 10.11.1.0/26 -VirtualNetwork $vnet
+# $vnet | Set-AzVirtualNetwork
+
+# $pip = Get-AzPublicIpAddress -ResourceGroupName $rg  -name "newvmpipsarshar"
+# New-AzFirewall -Name "vlstage-firewall" -ResourceGroupName $rg -Location westus -VirtualNetwork $vnet -PublicIpAddress $pip
