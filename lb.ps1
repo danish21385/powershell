@@ -1,5 +1,5 @@
 $ErrorActionPreference = "stop"
-$WhatIfPreference = $true
+$WhatIfPreference = $false
 
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'
 $rg = 'tragedy'
@@ -12,8 +12,9 @@ $subnet = Get-AzVirtualNetworkSubnetConfig  -name 'default' -VirtualNetwork $vne
 #Create FrontEndIPConfig and add the public ip to it.
   $frontendIP = New-AzLoadBalancerFrontendIpConfig `
   -Name 'feip' `
-  -Subnet $subnet
-
+  -Subnet $subnet `
+  -PrivateIpAddress 10.11.0.254
+ 
 #Create a backendAddress pool to add the virtual machines.
   $backendPool = New-AzLoadBalancerBackendAddressPoolConfig `
   -Name 'backendpool1'

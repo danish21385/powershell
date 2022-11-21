@@ -1,5 +1,5 @@
 $ErrorActionPreference = "stop"
-$WhatIfPreference = $true
+$WhatIfPreference = $false
 
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'
 $rg = 'tragedy'
@@ -11,8 +11,8 @@ $appruleCollection = New-AzFirewallApplicationRuleCollection -Name 'AppRuleColle
 $netrule = New-AzFirewallNetworkRule -Name 'Allow-All' -Protocol TCP -SourceAddress '*' -DestinationAddress '*' -DestinationPort "*"
 $netrulecollection = New-AzFirewallNetworkRuleCollection -Name 'NetRuleCollection' -Priority 100 -Rule $netrule -ActionType "Allow"
 
-$natrule1 = New-AzFirewallNatRule -Name "http" -Protocol "TCP" -SourceAddress "*" -DestinationAddress 20.237.215.120 -DestinationPort "80" -TranslatedAddress "10.0.0.2" -TranslatedPort "80"
-$natrule2 = New-AzFirewallNatRule -Name "https" -Protocol "TCP" -SourceAddress "*" -DestinationAddress 20.237.215.120 -DestinationPort "443" -TranslatedAddress "10.0.0.2" -TranslatedPort "443"
+$natrule1 = New-AzFirewallNatRule -Name "http" -Protocol "TCP" -SourceAddress "*" -DestinationAddress 20.237.215.134 -DestinationPort "80" -TranslatedAddress "10.11.0.254" -TranslatedPort "80"
+$natrule2 = New-AzFirewallNatRule -Name "https" -Protocol "TCP" -SourceAddress "*" -DestinationAddress 20.237.215.134 -DestinationPort "443" -TranslatedAddress "10.11.0.254" -TranslatedPort "443"
 $natruleCollection = New-AzFirewallNatRuleCollection -Name "NatRuleCollection" -Priority 1000 -Rule $natrule1, $natrule2
 
 #Creating firewall 

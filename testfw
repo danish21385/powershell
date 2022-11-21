@@ -1,4 +1,17 @@
+$ErrorActionPreference = "stop"
+$WhatIfPreference = $true
+
+
 $rgName = "tragedy"
+
+$lb2 = Get-AzLoadBalancer -ResourceGroupName 'tragedy' -Name 'loadbalancersarshar'
+$fip = Get-AzLoadBalancerFrontendIpConfig -Name "lbsarshar" -LoadBalancer $lb2
+$forpip = $fip.PublicIpAddress.Id
+
+$natrule1 = New-AzFirewallNatRule -Name "http" -Protocol "TCP" -SourceAddress "*" -DestinationAddress "20.237.215.134" -DestinationPort "80" -TranslatedAddress $forpip -TranslatedPort "80"
+$natrule2 = New-AzFirewallNatRule -Name "https" -Protocol "TCP" -SourceAddress "*" -DestinationAddress "20.237.215.134" -DestinationPort "443" -TranslatedAddress $forpip -TranslatedPort "443"
+$natruleCollection = New-AzFirewallNatRuleCollection -Name "NatRuleCollection" -Priority 1000 -Rule $natrule1, $natrule2
+
 $vnet = Get-AzVirtualNetwork -ResourceGroupName $rgName -Name "TestingScriptDeleteVM-vnet-asr"
 $pip = Get-AzPublicIpAddress -ResourceGroupName $rgName -Name "newvmpipsarshar"
-New-AzFirewall -Name "azFw" -ResourceGroupName $rgName -Location westUS -VirtualNetwork $vnet -PublicIpAddress $pip
+New-AzFirewall -Name "azFw" -ResourceGroupName $rgName -Location westUS -VirtualNetwork $vnet -PublicIpAddress $pip -NatRuleCollection $natruleCollection
