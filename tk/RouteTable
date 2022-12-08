@@ -1,3 +1,22 @@
+param (
+  
+    [Parameter(Mandatory=$false)]
+    [String] $rgname = "tragedy",
+	[String] $location = "West US"
+)
+
+
+{
+    "Logging in to Azure..."
+    Connect-AzAccount -Identity
+}
+catch {
+    Write-Error -Message $_.Exception
+    throw $_.Exception
+}
+
+
+
 #Creating user defined route and attach it to default subnet
 
 $vnetname = 'TestingScriptDeleteVM-vnet-asr'

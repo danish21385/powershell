@@ -1,21 +1,10 @@
-param (
-  
-    [Parameter(Mandatory=$false)]
-    [String] $rg = "tragedy",
-    [String] $vnetname = "TestingScriptDeleteVM-vnet-asr",
-	[String] $location = "West US"
-)
 
+$ErrorActionPreference = "stop"
+$WhatIfPreference = $false
 
-{
-    "Logging in to Azure..."
-    Connect-AzAccount -Identity
-}
-catch {
-    Write-Error -Message $_.Exception
-    throw $_.Exception
-}
-
+$vnetname = 'TestingScriptDeleteVM-vnet-asr'
+$rg = 'tragedy'
+$location ="westUS"
 
 #creating firewall rule
 $apprule = New-AzFirewallApplicationRule -Name 'Allow-All' -Protocol "http:80","https:443" -TargetFqdn "*" -SourceAddress '*' 

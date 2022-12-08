@@ -1,6 +1,6 @@
 
 $rg = "tragedy"
-$lbname = "loadbalancersarshar"
+$lbname = "vl-stage-asr"
 $backendPoolName = "backendpool1"
 $vmnic1 = "vmtestscriptdelet54"
 

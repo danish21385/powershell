@@ -1,0 +1,24 @@
+param (
+  
+    [Parameter(Mandatory=$false)]
+    [String] $rg = "VLRG-DR-West",
+	[String] $location = "West US"
+    
+)
+
+
+try {
+    "Logging in to Azure..."
+    Connect-AzAccount -Identity
+}
+catch {
+    Write-Error -Message $_.Exception
+    throw $_.Exception
+}
+
+
+#adding firewall public ip to traffic manager's endpoint
+
+$ip = Get-AzPublicIpAddress -Name "enter west us publicip name" -ResourceGroupName $rg
+New-AzTrafficManagerEndpoint –Name tm-endpoint-asr –ProfileName VLLBNew1 -ResourceGroupName $rg –Type AzureEndpoints -TargetResourceId $ip.Id –EndpointStatus Enabled
+disable-AzTrafficManagerEndpoint -name "Enter old endpoint name" -profilename "VLLBNew1" -ResourceGroupName $rg -type azureendpoints -force

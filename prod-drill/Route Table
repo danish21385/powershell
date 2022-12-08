@@ -1,0 +1,28 @@
+param (
+  
+    [Parameter(Mandatory=$false)]    
+    [String] $vnetname = "VLnet-dr-west",
+    [string] $rg = "VLRG-DR-West",
+	[String] $location = "West US"
+)
+try
+{
+    "Logging in to Azure..."
+    Connect-AzAccount -Identity
+}
+catch {
+    Write-Error -Message $_.Exception
+    throw $_.Exception
+}
+
+#creating default route pointing to firewall's private ip
+
+$Route = New-AzRouteConfig -Name "defaultroute" -AddressPrefix 0.0.0.0/0 -NextHopType VirtualAppliance -NextHopIpAddress 10.3.1.4
+New-AzRouteTable -Name "RouteTable01" -ResourceGroupName $rg -Location $location -Route $Route
+
+#assigning route to subnet
+
+$rt = Get-AzRouteTable -ResourceGroupName $rg -Name "RouteTable01"
+$vnet = Get-AzVirtualNetwork -Name $vnetname -ResourceGroupName $rg
+Set-AzVirtualNetworkSubnetConfig  -VirtualNetwork $vnet -Name 'default' -AddressPrefix 10.3.0.0/24 -RouteTable $rt
+Set-AzVirtualNetwork -VirtualNetwork $vnet

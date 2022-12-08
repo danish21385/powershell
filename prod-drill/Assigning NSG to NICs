@@ -1,0 +1,47 @@
+param (
+  
+    [Parameter(Mandatory=$false)]
+    [String] $rg = "VLRG-DR-West",
+	[String] $backendPoolName = "backendpool1",
+	[String] $lbname = "VLLoadBalancer2-asr",
+	[String] $vmnic1 = "vl-pri-srv-new1540",
+    [String] $vmnic2 = "vl-sec-srv-new1214",
+    [String] $vmnic3 = "vl-sec-srv-new277",
+	[String] $location = "West US"
+)
+
+try {
+    "Logging in to Azure..."
+    Connect-AzAccount -Identity
+}
+catch {
+    Write-Error -Message $_.Exception
+    throw $_.Exception
+}
+
+#creating rdp, http and https inbound rules and saving in a variable
+$rule1 = New-AzNetworkSecurityRuleConfig -Name RDP -Description "Allow RDP" -Access Allow -Protocol Tcp -Direction Inbound -Priority 100 -SourceAddressPrefix Internet -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 3389
+$rule2 = New-AzNetworkSecurityRuleConfig -Name HTTP -Description "Allow HTTP" -Access Allow -Protocol Tcp -Direction Inbound -Priority 101 -SourceAddressPrefix Internet -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 80
+$rule3 = New-AzNetworkSecurityRuleConfig -Name HTTPS -Description "Allow HTTPS" -Access Allow -Protocol Tcp -Direction Inbound -Priority 102 -SourceAddressPrefix Internet -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 443
+
+#creating the nsg and assigning the rules
+$nsg1 = New-AzNetworkSecurityGroup -ResourceGroupName $rg -Location $location -Name "vlnsg" -SecurityRules $rule1,$rule2,$rule3
+
+#Save NSG in a variable
+$nsg1 = Get-AzNetworkSecurityGroup -ResourceGroupName $rg -name "vlnsg" 
+
+
+#Assigning NSG to vmnic1
+$vmnic = Get-AzNetworkInterface -ResourceGroupName $rg -name $vmnic1
+$vmnic.NetworkSecurityGroup = $nsg1
+$vmnic | Set-AzNetworkInterface
+
+#Assigning NSG to vmnic2
+$vmnic = Get-AzNetworkInterface -ResourceGroupName $rg -name $vmnic2
+$vmnic.NetworkSecurityGroup = $nsg1
+$vmnic | Set-AzNetworkInterface
+
+#Assigning NSG to vmnic3
+$vmnic = Get-AzNetworkInterface -ResourceGroupName $rg -name $vmnic3
+$vmnic.NetworkSecurityGroup = $nsg1
+$vmnic | Set-AzNetworkInterface
