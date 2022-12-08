@@ -1,0 +1,38 @@
+param (
+  
+    [Parameter(Mandatory=$false)]
+    [String] $rg = "VLRG-DR-West",
+	[String] $backendPoolName = "backendpool1",
+	[String] $lbname = "VLLoadBalancer2-asr",
+	[String] $vmnic1 = "vl-pri-srv-new1540",
+    [String] $vmnic2 = "vl-sec-srv-new1214",
+    [String] $vmnic3 = "vl-sec-srv-new277",
+	[String] $location = "West US"
+)
+
+
+try {
+    "Logging in to Azure..."
+    Connect-AzAccount -Identity
+}
+catch {
+
+    Write-Error -Message $_.Exception
+    throw $_.Exception
+}
+
+
+$mylb = Get-AzLoadBalancer -Name $lbname -ResourceGroupName $rg
+$bep = Get-AzLoadBalancerBackendAddressPoolConfig -Name $backendPoolName -LoadBalancer $mylb
+
+$nic1 = Get-AzNetworkInterface -ResourceGroupName $rg -Name $vmnic1
+$nic1.IpConfigurations[0].LoadBalancerBackendAddressPools = $bep
+$nic1 | Set-AzNetworkInterface
+
+$nic2 = Get-AzNetworkInterface -ResourceGroupName $rg -Name $vmnic2
+$nic2.IpConfigurations[0].LoadBalancerBackendAddressPools = $bep
+$nic2 | Set-AzNetworkInterface
+
+$nic3 = Get-AzNetworkInterface -ResourceGroupName $rg -Name $vmnic3
+$nic3.IpConfigurations[0].LoadBalancerBackendAddressPools = $bep
+$nic3 | Set-AzNetworkInterface
