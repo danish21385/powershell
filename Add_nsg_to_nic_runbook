@@ -1,0 +1,30 @@
+param (
+  
+    [Parameter(Mandatory=$false)]
+    [String] $rg = "tragedy",
+	[String] $location = "West US"
+    
+)
+
+
+try {
+    "Logging in to Azure..."
+    Connect-AzAccount -Identity
+}
+catch {
+    Write-Error -Message $_.Exception
+    throw $_.Exception
+}
+
+$rule1 = New-AzNetworkSecurityRuleConfig -Name RDP -Description "Allow RDP" -Access Allow -Protocol Tcp -Direction Inbound -Priority 100 -SourceAddressPrefix Internet -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 3389
+$rule2 = New-AzNetworkSecurityRuleConfig -Name HTTP -Description "Allow HTTP" -Access Allow -Protocol Tcp -Direction Inbound -Priority 101 -SourceAddressPrefix Internet -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 80
+$rule3 = New-AzNetworkSecurityRuleConfig -Name HTTPS -Description "Allow HTTPS" -Access Allow -Protocol Tcp -Direction Inbound -Priority 102 -SourceAddressPrefix Internet -SourcePortRange * -DestinationAddressPrefix * -DestinationPortRange 443
+
+$nsg1 = New-AzNetworkSecurityGroup -ResourceGroupName $rg -Location $location -Name "nsgprimary" -SecurityRules $rule1,$rule2,$rule3
+
+
+$nsg1 = Get-AzNetworkSecurityGroup -ResourceGroupName $rg -name "nsgprimary" 
+$vmnic = Get-AzNetworkInterface -ResourceGroupName $rg -name "vmtestscriptdelet54" 
+
+$vmnic.NetworkSecurityGroup = $nsg1
+$vmnic | Set-AzNetworkInterface
